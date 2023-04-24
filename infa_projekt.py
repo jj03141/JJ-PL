@@ -55,3 +55,17 @@ if __name__ == '__main__':
     Z = 5009571.170
     fi, lam, h = geo.hirvonen(X, Y, Z, output='dms')
     print(fi, lam, h)
+
+
+def hirvonen(X,Y,Z,a,e2):
+    p = np.sqrt(X**2 + Y**2)
+    f = np.arctan(Z/(p*(1 - e2)))
+    while True:
+        N = Np(f,a,e2)
+        h = (p / np.cos(f)) - N
+        fp = f
+        f = np.arctan(Z/(p*(1 - e2 * (N / (N + h)))))
+        if np.abs(fp - f) < (0.000001/206265):
+            break
+    l = np.arctan2(Y,X)
+    return(f,l,h)
