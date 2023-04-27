@@ -1,4 +1,5 @@
 from math import *
+import argparse as arg
 
 class transformacje:
     def __init__(self, model: str = 'wgs84'):
@@ -181,6 +182,20 @@ class transformacje:
         return x_00, y_00
     
     def xyz2neu(self, x, y, z):
+        """
+        Transformacja XYZ -> NEU - algorytm transformacji współrzędnych ortokartezjańskich (X, Y, Z)
+        na współrzędne w układzie NEU: North, East, Up (N, E, U). 
+
+        Parametery
+        ----------
+        X, Y, Z : FLOAT
+            [metry] współrzędne w układzie orto-kartezjańskim, 
+
+        Returns
+        -------
+        N, E, U : FLOAT
+            [metry] współrzędne w układzie NEU
+        """
         a = self.a
         e2 = self.e2
         f = self.hirvonen(x, y, z)[0]
@@ -210,6 +225,11 @@ E = []
 U = []
 
 with open('wsp_inp.txt', 'r') as plik:
+    '''
+    Wczytanie pliku i wyodrębnienie podanych w nim współrzędnych 
+    za pomocą pętli for. Odczytane dane dodajemy do list, a następnie 
+    transformujemy je do innych układów współrzędnych.
+    '''
     lines = plik.readlines()
     t = 0
     for i in lines:
@@ -221,6 +241,10 @@ with open('wsp_inp.txt', 'r') as plik:
             Z.append(float(x[2]))
             
 if __name__ =='__main__':
+    '''
+    Wykonujemy transformacje wczesniej wyodrębnionych współrzędnych i 
+    przypisujemy je do specjalnie utworzonych dla każdego układu list.
+    '''
     geo = transformacje(model = 'wgs84')
     for a, b, c in zip(X, Y, Z):
         f, l, h = geo.hirvonen(a, b, c)
@@ -237,7 +261,11 @@ if __name__ =='__main__':
         N.append(n)
         E.append(e)
         U.append(u)
-        
+
+'''
+Tworzymy plik, w którym zapisujemy uzyskane dla każdego układu wyniki,
+wykorzystujemy do tego metodę f-string.
+'''        
 plik=open("wsp_out.txt","w")
 plik.write(f'Współrzędne BLH, PL-1992, PL-2000, NEU stacji permanentnej GNSS \n')
 plik.write(f'Obserwatorium Astronomiczno-Geodezyjne w Józefosławiu \n')
@@ -282,6 +310,13 @@ for a,b,c in zip(N,E,U):
 plik.close()
 
 if __name__ == '__main__':
+    '''
+    Utworzenie programu do transformacji współrzędnych geodezyjnych między 
+    różnymi układami odniesienia i elipsoidami, który odczytuje argumenty z wiersza poleceń 
+    i zapisuje wyniki do pliku tekstowego. W zależności od wybranego układu i modelu elipsoidy,
+    program wywołuje odpowiednie funkcje transformacji i zapisuje wyniki do konsoli i pliku.
+    Wykorzystujemy bibliotekę argparse.
+    '''
     parser = arg.ArgumentParser(description = 'XYZ -> PL-1992')
     parser.add_argument('x', type = float, help = 'Współrzędna X')
     parser.add_argument('y', type = float, help = 'Współrzędna Y')
