@@ -2,6 +2,13 @@ from math import *
 
 class transformacje:
     def __init__(self, model: str = 'wgs84'):
+        """
+        Parametry elipsoid:
+            a - duża półoś elipsoidy - promień równikowy
+            b - mała półoś elipsoidy - promień południkowy
+            flat - spłaszczenie
+            e2 - mimośród^2
+        """
         if model == 'wgs84':
             self.a = 6378137.0
             self.b = 6356752.31424518
@@ -19,6 +26,24 @@ class transformacje:
     
     
     def hirvonen(self, X, Y, Z):
+        """
+        Algorytm Hirvonena - algorytm transformacji współrzędnych ortokartezjańskich (X, Y, Z)
+        na współrzędne geodezyjne długość szerokość i wysokośc elipsoidalna (fi, lambda, h). Jest to proces iteracyjny. 
+        W wyniku 3-4-krotneej iteracji wyznaczenia wsp. phi można przeliczyć współrzędne z dokładnoscią ok 1 mm.     
+        Parametery
+        ----------
+        X, Y, Z : FLOAT
+            współrzędne w układzie orto-kartezjańskim, 
+
+        Returns
+        -------
+        f
+            [stopnie dziesiętne] - szerokość geodezyjna
+        l
+            [stopnie dziesiętne] - długośc geodezyjna.
+        h : TYPE
+            [metry] - wysokość elipsoidalna
+        """
         a = self.a
         e2 = self.e2
         p = sqrt(X**2 + Y**2)
@@ -34,6 +59,20 @@ class transformacje:
         return(f,l,h)
             
     def flh2XYZ(self, f, l, h):
+        """
+        Odwrotny algorytm Hirvonena - algorytm transformacji współrzędnych geodezyjnych 
+        długość szerokość i wysokośc elipsoidalna(fi, lambda, h) na współrzędne ortokartezjańskie  (X, Y, Z).
+
+        Parametery
+        ----------
+        f, l, h : FLOAT
+            [dec_degree] współrzędne geodezyjne, 
+
+        Returns
+        -------
+        X, Y, Z : FLOAT
+            [metry] współrzędne ortokartezjańskie
+        """
         f = radians(f)
         l = radians(l)
         N = self.a / sqrt(1 - self.e2 * sin(f)**2)
@@ -43,6 +82,20 @@ class transformacje:
         return X, Y, Z
     
     def BL292(self, x, y, z):
+        """
+        Transformacja f,l -> PL-1992 - algorytm transformacji współrzędnych elipsoidalnych (f, l)
+        na współrzędne płaskie w układzie odniesienia PL-1992 (x_92, y_92). 
+   
+        Parametery
+        ----------
+        X, Y, Z : FLOAT
+            [metry] współrzędne w układzie orto-kartezjańskim, 
+
+        Returns
+        -------
+        x_92, y_92 : FLOAT
+            [metry] współrzędne płaskie w układzie PL-1992
+        """
         f = self.hirvonen(x, y, z)[0]
         l = self.hirvonen(x, y, z)[1]
         l0 = radians(19)
@@ -74,6 +127,20 @@ class transformacje:
         return x_92, y_92
     
     def BL200(self, x, y, z):
+        """
+        Transformacja f,l -> PL-2000 - algorytm transformacji współrzędnych elipsoidalnych (f, l)
+        na współrzędne płaskie w układzie odniesienia PL-2000 (x_00, y_00). 
+
+        Parametery
+        ----------
+        X, Y, Z : FLOAT
+            [metry] współrzędne w układzie orto-kartezjańskim, 
+
+        Returns
+        -------
+        x_00, y_00 : FLOAT
+            [metry] współrzędne płaskie w układzie PL-2000
+        """
         a = self.a
         e2 = self.e2
         f = self.hirvonen(x, y, z)[0]
@@ -224,6 +291,8 @@ for a,b,c in zip(N,E,U):
     c = f'{c:7.3f}'
     plik.write(f'{a},   {b},      {c} \n')
 plik.close()
+
+
         
 
 
