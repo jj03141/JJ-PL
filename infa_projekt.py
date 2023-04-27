@@ -17,16 +17,6 @@ class transformacje:
         self.e = sqrt(2 * self.flat - self.flat ** 2)
         self.e2 = (2 * self.flat - self.flat ** 2)
     
-    def dms(self, x):
-        sig = ' '
-        if x < 0:
-            sig = ' - '
-            x = abs(x)
-        x = x * 180/pi
-        d = int(x)
-        m = int(60 * (x - d))
-        s = (x - d - m/60) * 3600
-        return sig, "%3d %2d %7.5f" % (d,m,s)
     
     def hirvonen(self, X, Y, Z):
         a = self.a
@@ -44,6 +34,8 @@ class transformacje:
         return(f,l,h)
             
     def flh2XYZ(self, f, l, h):
+        f = radians(f)
+        l = radians(l)
         N = self.a / sqrt(1 - self.e2 * sin(f)**2)
         X = (N + h) * cos(f) * cos(l)
         Y = (N + h) * cos(f) * sin(l)
@@ -86,11 +78,11 @@ class transformacje:
         e2 = self.e2
         f = self.hirvonen(x, y, z)[0]
         l = self.hirvonen(x, y, z)[1]
-        if abs(l - 15) <= 1.5:
+        if abs(degrees(l) - 15) <= 1.5:
             l0_deg = 15
-        elif abs(l - 18) < 1.5:
+        elif abs(degrees(l) - 18) < 1.5:
             l0_deg = 18
-        elif abs(l - 21) <= 1.5:
+        elif abs(degrees(l) - 21) <= 1.5:
             l0_deg = 21
         else:
             l0_deg = 24
@@ -106,7 +98,7 @@ class transformacje:
         t4 = t**4
         n2 = e_2 * (cos(f)**2)
         n4 = n2 ** 2
-        N = Np(f,a,e2)
+        N = self.a / sqrt(1 - self.e2 * sin(f)**2)
         e4 = e2**2
         e6 = e2**3
         A0 = 1 - (e2/4) - ((3*e4)/64) - ((5*e6)/256)
@@ -127,21 +119,18 @@ class transformacje:
         f = self.hirvonen(x, y, z)[0]
         l = self.hirvonen(x, y, z)[1]
         N = self.a / sqrt(1 - self.e2 * sin(f)**2)
-        
-        T = np.array([[-sin(l)         , cos(l),                0],
-                      [-sin(f) * cos(l), -sin(f) * sin(l), cos(f)],
-                      [cos(f) * cos(l) , cos(f) * sin(l), sin(f)]])
+    
       
-        N = -sin(f) * cos(l) * x - sin(f) * sin(l) * y + cos(f) * z
+        N1 = -sin(f) * cos(l) * x - sin(f) * sin(l) * y + cos(f) * z
         E = -sin(l) * x + cos(l) * y
         U = cos(f) * cos(l) * x + cos(f) * sin(l) * y  + sin(f) * z
 
-        return N, E, U
+        return N1, E, U
 
         
 
 
-
+'''
 if __name__ == '__main__':
     geo = transformacje(model='wgs84')
     X = 3664940.500
@@ -149,5 +138,52 @@ if __name__ == '__main__':
     Z = 5009571.170
     fi, lam = geo.BL292(X, Y, Z)
     print(fi, lam)
+'''
+X = []
+Y = []
+Z = []
+F = []
+L = []
+H = []
+X92 = []
+Y92 = []
+X00 = []
+Y00 = []
+N = []
+E = []
+U = []
+
+with open('wsp_inp.txt', 'r') as plik:
+    lines = plik.readlines()
+    t = 0
+    for i in lines:
+        t = t+1
+        if t > 4:
+            x = i.split(',')
+            X.append(float(x[0]))
+            Y.append(float(x[1]))
+            Z.append(float(x[2]))
+            
+if __name__ =='__main__':
+    geo = transformacje(model = 'wgs84')
+    for a,b,c in zip(X,Y,Z):
+        f,l,h = geo.hirvonen(a,b,c)
+        F.append(degrees(f))
+        L.append(degrees(l))
+        H.append(h)
+        x92,y92 = geo.BL292(a,b,c)
+        X92.append(x92)
+        Y92.append(y92)
+        x00,y00 =geo.BL200(a,b,c)
+        X00.append(x00)
+        Y00.append(y00)
+        n,e,u = geo.xyz2neu(a,b,c)
+        N.append(n)
+        E.append(e)
+        U.append(u)
+        
+
+        
+        
 
 
