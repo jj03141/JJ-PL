@@ -182,7 +182,48 @@ if __name__ =='__main__':
         E.append(e)
         U.append(u)
         
+plik=open("wsp_out.txt","w")
+plik.write(f'Współrzędne BLH, PL-1992, PL-2000, NEU stacji permanentnej GNSS \n')
+plik.write(f'Obserwatorium Astronomiczno-Geodezyjne w Józefosławiu \n')
+plik.write(f'# ----------------------------------------------------- \n')
+plik.write(f'# BLH-------------------------------------------------- \n')
+plik.write(f'  B[d]         L[d]         H[m] \n')
+plik.write(f'# ----------------------------------------------------- \n')
+for a,b,c in zip(F,L,H):
+    a = f'{a:7.4f}'
+    b = f'{b:7.4f}'
+    c = f'{c:7.4f}'
+    plik.write(f'{a},      {b},      {c} \n')
 
+plik.write(f'# ----------------------------------------------------- \n')
+plik.write(f'# PL-1992---------------------------------------------- \n')
+plik.write(f'  X[m]         Y[m] \n')
+plik.write(f'# ----------------------------------------------------- \n')
+for a,b in zip(X92,Y92):
+    a = f'{a:7.3f}'
+    b = f'{b:7.3f}'
+    plik.write(f'{a},   {b} \n')
+    
+plik.write(f'# ----------------------------------------------------- \n')
+plik.write(f'# PL-2000---------------------------------------------- \n')
+plik.write(f'  X[m]         Y[m] \n')
+plik.write(f'# ----------------------------------------------------- \n')
+for a,b in zip(X00,Y00):
+    a = f'{a:7.3f}'
+    b = f'{b:7.3f}'
+    plik.write(f'{a},   {b} \n')
+
+plik.write(f'# ----------------------------------------------------- \n')
+plik.write(f'# NEU---------------------------------------------- \n')
+plik.write(f'  N[m]         E[m]         U[m] \n')
+plik.write(f'# ----------------------------------------------------- \n')
+
+for a,b,c in zip(N,E,U):
+    a = f'{a:7.3f}'
+    b = f'{b:7.3f}'
+    c = f'{c:7.3f}'
+    plik.write(f'{a},   {b},      {c} \n')
+plik.close()
         
         
 
