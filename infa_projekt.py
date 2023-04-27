@@ -194,18 +194,7 @@ class transformacje:
 
         return N1, E, U
 
-        
 
-
-'''
-if __name__ == '__main__':
-    geo = transformacje(model='wgs84')
-    X = 3664940.500
-    Y = 1409153.590
-    Z = 5009571.170
-    fi, lam = geo.BL292(X, Y, Z)
-    print(fi, lam)
-'''
 X = []
 Y = []
 Z = []
@@ -292,6 +281,36 @@ for a,b,c in zip(N,E,U):
     plik.write(f'{a},   {b},      {c} \n')
 plik.close()
 
+if __name__ == '__main__':
+    parser = arg.ArgumentParser(description = 'XYZ -> PL-1992')
+    parser.add_argument('x', type = float, help = 'Współrzędna X')
+    parser.add_argument('y', type = float, help = 'Współrzędna Y')
+    parser.add_argument('z', type = float, help = 'Współrzędna Z')
+    parser.add_argument('--model', type = str, choices = ['wgs84', 'grs80', 'krasowski'], default = 'wgs84', help = 'Model elipsoidy (wgs84, grs80 lub krasowski), domyslnie: wgs84')
+    parser.add_argument('--uklad', type = str, choices = ['PL-1992', 'PL-2000', 'BLH', 'NEU'], default = 'BLH', help= 'System współrzędnych (PL-1992, PL-2000, BLH, NEU), domyslnie: BLH')
+    parser.add_argument('--output', type = str, default = 'output.txt', help = 'Nazwa pliku z wynikami, domyslnie: output.txt')
+    args = parser.parse_args()
+    
+    geo = transformacje(model=args.model)
+    if args.uklad == 'PL-1992':
+        x92, y92 = geo.BL292(args.x, args.y, args.z)
+        wynik = f'X = {x92:.3f} [m]; Y = {y92:.3f} [m] | {args.uklad} | {args.model}'
+        print(wynik)
+    elif args.uklad == 'PL-2000':
+        x00, y00 = geo.BL200(args.x, args.y, args.z)
+        wynik = f'X = {x00:.3f} [m]; Y = {y00:.3f} [m] | {args.uklad} | {args.model}'
+        print(wynik)
+    elif args.uklad == 'BLH':
+        f, l, h = geo.hirvonen(args.x, args.y, args.z)
+        wynik = f'fi = {degrees(f):.4f} [deg]; lam = {degrees(l):.4f} [deg]; h = {h:.3f} [m] | {args.uklad} | {args.model}'
+        print(wynik)
+    elif args.uklad == 'NEU':
+        n, e, u = geo.xyz2neu(args.x, args.y, args.z)
+        wynik = f'N = {n:.3f} [m]; E = {e:.3f} [m]; U = {u:.3f} [m] | {args.uklad} | {args.model}'
+        print(wynik)
+        
+    with open(args.output, 'a') as file:
+        file.write(wynik + '\n')
 
         
 
