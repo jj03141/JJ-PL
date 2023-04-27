@@ -28,35 +28,20 @@ class transformacje:
         s = (x - d - m/60) * 3600
         return sig, "%3d %2d %7.5f" % (d,m,s)
     
-    def hirvonen(self, X, Y, Z, output='dec_degree'):
+    def hirvonen(self, X, Y, Z):
+        a = self.a
+        e2 = self.e2
         p = sqrt(X**2 + Y**2)
-        f = atan(Z/(p*(1 - self.e2)))
+        f = atan(Z/(p*(1 - e2)))
         while True:
             N = self.a / sqrt(1 - self.e2 * sin(f)**2)
             h = (p / cos(f)) - N
             fp = f
-            f = atan(Z/(p*(1 - self.e2 * (N / (N + h)))))
+            f = atan(Z/(p*(1 - e2 * (N / (N + h)))))
             if abs(fp - f) < (0.000001/206265):
                 break
-        l = atan2(Y, X)
-        f_dg = degrees(f)
-        l_dg = degrees(l)
-        while True:
-            f_dg = f_dg - 360
-            if f_dg - 360 < 0:
-                break
-        while True:
-            l_dg = l_dg - 360
-            if l_dg - 360 < 0:
-                break
-        if output == 'dec_degree':
-            return f_dg, l_dg, h
-        elif output == 'dms':
-            f = self.dms(f_dg)
-            l = self.dms(l_dg)
-            return f, l, h
-        else:
-            raise NotImplementedError(f'{output} - output format not defined')
+        l = atan2(Y,X)
+        return(f,l,h)
             
     def flh2XYZ(self, f, l, h):
         N = self.a / sqrt(1 - self.e2 * sin(f)**2)
@@ -65,7 +50,9 @@ class transformacje:
         Z = (N * (1 - self.e2) + h) * sin(f)
         return X, Y, Z
     
-    def BL292(self, f, l):
+    def BL292(self, x, y, z):
+        f = self.hirvonen(x, y, z)[0]
+        l = self.hirvonen(x, y, z)[1]
         l0 = radians(19)
         a = self.a
         e2 = self.e2
@@ -94,9 +81,11 @@ class transformacje:
         y_92 = ygk * 0.9993 + 500000
         return x_92, y_92
     
-    def BL200(self, f, l):
+    def BL200(self, x, y, z):
         a = self.a
         e2 = self.e2
+        f = self.hirvonen(x, y, z)[0]
+        l = self.hirvonen(x, y, z)[1]
         if abs(l - 15) <= 1.5:
             l0_deg = 15
         elif abs(l - 18) < 1.5:
@@ -142,17 +131,7 @@ class transformacje:
         T = np.array([[-sin(l)         , cos(l),                0],
                       [-sin(f) * cos(l), -sin(f) * sin(l), cos(f)],
                       [cos(f) * cos(l) , cos(f) * sin(l), sin(f)]])
-        '''
-        N = [-T[0][0] * X - T[1][0] * Y - T[2][0] * Z,
-             -T[0][1] * X - T[1][1] * Y - T[2][1] * Z,
-             -T[0][2] * X - T[1][2] * Y - T[2][2] * Z]
-
-        E = [-T[0][0] * X - T[1][0] * Y - T[2][0] * Z,
-             -T[0][1] * X - T[1][1] * Y - T[2][1] * Z,
-             -T[0][2] * X - T[1][2] * Y - T[2][2] * Z]
-        
-        U = X * sin(f) - Y * sin(l) * cos(f) - Z * cos(l) * cos(f)
-        '''
+      
         N = -sin(f) * cos(l) * x - sin(f) * sin(l) * y + cos(f) * z
         E = -sin(l) * x + cos(l) * y
         U = cos(f) * cos(l) * x + cos(f) * sin(l) * y  + sin(f) * z
@@ -168,7 +147,7 @@ if __name__ == '__main__':
     X = 3664940.500
     Y = 1409153.590
     Z = 5009571.170
-    fi, lam, h = geo.xyz2neu(X, Y, Z)
-    print(fi, lam, h)
+    fi, lam = geo.BL292(X, Y, Z)
+    print(fi, lam)
 
 
