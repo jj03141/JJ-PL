@@ -166,18 +166,18 @@ with open('wsp_inp.txt', 'r') as plik:
             
 if __name__ =='__main__':
     geo = transformacje(model = 'wgs84')
-    for a,b,c in zip(X,Y,Z):
-        f,l,h = geo.hirvonen(a,b,c)
+    for a, b, c in zip(X, Y, Z):
+        f, l, h = geo.hirvonen(a, b, c)
         F.append(degrees(f))
         L.append(degrees(l))
         H.append(h)
-        x92,y92 = geo.BL292(a,b,c)
+        x92, y92 = geo.BL292(a, b, c)
         X92.append(x92)
         Y92.append(y92)
-        x00,y00 =geo.BL200(a,b,c)
+        x00, y00 = geo.BL200(a, b, c)
         X00.append(x00)
         Y00.append(y00)
-        n,e,u = geo.xyz2neu(a,b,c)
+        n, e, u = geo.xyz2neu(a, b, c)
         N.append(n)
         E.append(e)
         U.append(u)
@@ -225,6 +225,6 @@ for a,b,c in zip(N,E,U):
     plik.write(f'{a},   {b},      {c} \n')
 plik.close()
         
-        
+
 
 
