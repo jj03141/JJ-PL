@@ -1,5 +1,6 @@
 from math import *
 import argparse as arg
+import numpy as np
 
 class transformacje:
     def __init__(self, model: str = 'wgs84'):
@@ -181,33 +182,59 @@ class transformacje:
         y_00 = ygk * 0.999923 + strefa * 1000000 + 500000
         return x_00, y_00
     
-    def xyz2neu(self, x, y, z):
+    def Rneu(self, f, l):
         """
-        Transformacja XYZ -> NEU - algorytm transformacji współrzędnych ortokartezjańskich (X, Y, Z)
-        na współrzędne w układzie NEU: North, East, Up (N, E, U). 
+        Macierz R w transformacji współrzędnych XYZ na NEU jest macierzą rotacji, która pozwala przeliczyć 
+        współrzędne z układu kartezjańskiego na współrzędne związanego z Ziemią układu współrzędnych geodezyjnych NEU.
+        Wykorzystujemy bibliotekę numpy.
+        
+        Parametery
+        ----------
+        fi, lam: FLOAT
+            [dec_degree] współrzędne fi, lambda w układzie geodezyjnym, 
+       
+        Returns
+        -------
+        R : np.array[]
+            [niemianowane] macierz rotacji
+        """
+        R = np.array([[-np.sin(f) * np.cos(l), -np.sin(l), np.cos(f) * np.cos(l)],
+                      [-np.sin(f) * np.sin(l), np.cos(l), np.cos(f) * np.sin(l)],
+                      [np.cos(f), 0, np.sin(f)]])
+        return(R)
+    
+    def xyz2neu(self, xa, ya, za, xb, yb, zb):
+        """
+        Transformacja XYZ -> NEU - algorytm transformacji współrzędnych wektora pomiędzy dwoma punktami w układzie współrzędnych 
+        ortokartezjańskich (X, Y, Z) na współrzędne wektora pomiędzy dwoma punktami w układzie NEU: North, East, Up (N, E, U). 
+        Wykorzystujemy bibliotekę numpy.
 
         Parametery
         ----------
-        X, Y, Z : FLOAT
+        Xa, Ya, Za : FLOAT
             [metry] współrzędne w układzie orto-kartezjańskim, 
+        
+        Xb, Yb, Zb : FLOAT
+            [metry] współrzędne punktu referencyjnego w układzie orto-kartezjańskim, 
 
         Returns
         -------
         N, E, U : FLOAT
             [metry] współrzędne w układzie NEU
         """
+        
         a = self.a
         e2 = self.e2
-        f = self.hirvonen(x, y, z)[0]
-        l = self.hirvonen(x, y, z)[1]
-        N = self.a / sqrt(1 - self.e2 * sin(f)**2)
-    
-      
-        N1 = -sin(f) * cos(l) * x - sin(f) * sin(l) * y + cos(f) * z
-        E = -sin(l) * x + cos(l) * y
-        U = cos(f) * cos(l) * x + cos(f) * sin(l) * y  + sin(f) * z
+        dxyz = np.array([xb, yb, zb]) - np.array([xa, ya, za])
+        f = self.hirvonen(xa, ya, za)[0]
+        l = self.hirvonen(xa, ya, za)[1]
+        R = self.Rneu(f, l)
+        dneu = np.linalg.solve(R, dxyz)
+        N = dneu[0]
+        E = dneu[1]
+        U = dneu[2]
 
-        return N1, E, U
+        return N, E, U
 
 
 X = []
@@ -257,7 +284,7 @@ if __name__ =='__main__':
         x00, y00 = geo.BL200(a, b, c)
         X00.append(x00)
         Y00.append(y00)
-        n, e, u = geo.xyz2neu(a, b, c)
+        n, e, u = geo.xyz2neu(a, b, c, 100, 100, 100)
         N.append(n)
         E.append(e)
         U.append(u)
@@ -318,30 +345,39 @@ if __name__ == '__main__':
     Wykorzystujemy bibliotekę argparse.
     '''
     parser = arg.ArgumentParser(description = 'XYZ -> PL-1992')
+    parser.add_argument('--dane', type = str, choices = ['XYZ', 'BLH'], default = 'XYZ', help = 'Typ wprowadzanych współrzędnych (BLH lub XYZ), domyslnie: XYZ' )
     parser.add_argument('x', type = float, help = 'Współrzędna X')
     parser.add_argument('y', type = float, help = 'Współrzędna Y')
     parser.add_argument('z', type = float, help = 'Współrzędna Z')
+    parser.add_argument('-x_ref', type = float, help = 'Współrzędna X punktu referencyjnego', default = 100.00)
+    parser.add_argument('-y_ref', type = float, help = 'Współrzędna Y punktu referencyjnego', default = 100.00)
+    parser.add_argument('-z_ref', type = float, help = 'Współrzędna Z punktu referencyjnego', default = 100.00)
     parser.add_argument('--model', type = str, choices = ['wgs84', 'grs80', 'krasowski'], default = 'wgs84', help = 'Model elipsoidy (wgs84, grs80 lub krasowski), domyslnie: wgs84')
     parser.add_argument('--uklad', type = str, choices = ['PL-1992', 'PL-2000', 'BLH', 'NEU'], default = 'BLH', help= 'System współrzędnych (PL-1992, PL-2000, BLH, NEU), domyslnie: BLH')
     parser.add_argument('--output', type = str, default = 'output.txt', help = 'Nazwa pliku z wynikami, domyslnie: output.txt')
     args = parser.parse_args()
     
     geo = transformacje(model=args.model)
-    if args.uklad == 'PL-1992':
-        x92, y92 = geo.BL292(args.x, args.y, args.z)
-        wynik = f'X = {x92:.3f} [m]; Y = {y92:.3f} [m] | {args.uklad} | {args.model}'
-        print(wynik)
-    elif args.uklad == 'PL-2000':
-        x00, y00 = geo.BL200(args.x, args.y, args.z)
-        wynik = f'X = {x00:.3f} [m]; Y = {y00:.3f} [m] | {args.uklad} | {args.model}'
-        print(wynik)
-    elif args.uklad == 'BLH':
-        f, l, h = geo.hirvonen(args.x, args.y, args.z)
-        wynik = f'fi = {degrees(f):.4f} [deg]; lam = {degrees(l):.4f} [deg]; h = {h:.3f} [m] | {args.uklad} | {args.model}'
-        print(wynik)
-    elif args.uklad == 'NEU':
-        n, e, u = geo.xyz2neu(args.x, args.y, args.z)
-        wynik = f'N = {n:.3f} [m]; E = {e:.3f} [m]; U = {u:.3f} [m] | {args.uklad} | {args.model}'
+    if args.dane == 'XYZ':
+        if args.uklad == 'PL-1992':
+            x92, y92 = geo.BL292(args.x, args.y, args.z)
+            wynik = f'X = {x92:.3f} [m]; Y = {y92:.3f} [m] | {args.uklad} | {args.model}'
+            print(wynik)
+        elif args.uklad == 'PL-2000':
+            x00, y00 = geo.BL200(args.x, args.y, args.z)
+            wynik = f'X = {x00:.3f} [m]; Y = {y00:.3f} [m] | {args.uklad} | {args.model}'
+            print(wynik)
+        elif args.uklad == 'BLH':
+            f, l, h = geo.hirvonen(args.x, args.y, args.z)
+            wynik = f'fi = {degrees(f):.4f} [deg]; lam = {degrees(l):.4f} [deg]; h = {h:.3f} [m] | {args.uklad} | {args.model}'
+            print(wynik)
+        elif args.uklad == 'NEU':
+            n, e, u = geo.xyz2neu(args.x, args.y, args.z, args.x_ref, args.y_ref, args.z_ref)
+            wynik = f'N = {n:.3f} [m]; E = {e:.3f} [m]; U = {u:.3f} [m] | {args.uklad} | {args.model}'
+            print(wynik)
+    elif args.dane == 'BLH':
+        X, Y, Z = geo.flh2XYZ(args.x, args.y, args.z)
+        wynik = f'X = {X:.3f} [m]; Y = {Y:.3f} [m]; Z = {Z:.3f} [m] | wsp. ortokartezjańskie |'
         print(wynik)
         
     with open(args.output, 'a') as file:
