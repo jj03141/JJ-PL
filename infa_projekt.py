@@ -1,9 +1,6 @@
 from math import *
 import argparse as arg
-<<<<<<< HEAD
-=======
 import numpy as np
->>>>>>> ec136bd266bf62c21dd436f4dd195eb71269d64e
 
 class transformacje:
     def __init__(self, model: str = 'wgs84'):
@@ -232,7 +229,7 @@ class transformacje:
         f = self.hirvonen(xa, ya, za)[0]
         l = self.hirvonen(xa, ya, za)[1]
         R = self.Rneu(f, l)
-        dneu = np.linalg.solve(R, dxyz)
+        dneu = -np.linalg.solve(R, dxyz)
         N = dneu[0]
         E = dneu[1]
         U = dneu[2]
