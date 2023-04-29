@@ -195,7 +195,7 @@ class transformacje:
        
         Returns
         -------
-        R : np.array[]
+        R : array
             [niemianowane] macierz rotacji
         """
         R = np.array([[-np.sin(f) * np.cos(l), -np.sin(l), np.cos(f) * np.cos(l)],
