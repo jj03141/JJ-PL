@@ -46,20 +46,32 @@ class transformacje:
         h : TYPE
             [metry] - wysokość elipsoidalna
         """
-        a = self.a
-        e2 = self.e2
-        p = sqrt(X**2 + Y**2)
-        f = atan(Z/(p*(1 - e2)))
-        while True:
-            N = self.a / sqrt(1 - self.e2 * sin(f)**2)
-            h = (p / cos(f)) - N
-            fp = f
-            f = atan(Z/(p*(1 - e2 * (N / (N + h)))))
-            if abs(fp - f) < (0.000001/206265):
-                break
-        l = atan2(Y,X)
-        return(f,l,h)
+        try:
+            if X == 0 and Y == 0:
+                raise NotImplementedError(f'Dla podanych współrzędnych X = {X}, Y ={Y} nie jest możliwe jednoznaczne określenie współrzędnych w układzie BLH. Wprowadź inne współrzędne.')
+            #komunikat = "Nie można jednoznacznie określić współrzędnych BLH dla podanych wspołrzędnych."
+            #return(0,0,0,komunikat)
+            # reszta kodu
+    
+            a = self.a
+            e2 = self.e2
+            p = sqrt(X**2 + Y**2)
+            f = atan(Z/(p*(1 - e2)))
+            while True:
+                N = self.a / sqrt(1 - self.e2 * sin(f)**2)
+                h = (p / cos(f)) - N
+                fp = f
+                f = atan(Z/(p*(1 - e2 * (N / (N + h)))))
+                if abs(fp - f) < (0.000001/206265):
+                    break
+            l = atan2(Y,X)
+            return(f,l,h)
+        
+        except NotImplementedError as error:
+            print(error)
+            return None, None, None
             
+        
     def flh2XYZ(self, f, l, h):
         """
         Odwrotny algorytm Hirvonena - algorytm transformacji współrzędnych geodezyjnych 
@@ -369,8 +381,11 @@ if __name__ == '__main__':
             print(wynik)
         elif args.uklad == 'BLH':
             f, l, h = geo.hirvonen(args.x, args.y, args.z)
-            wynik = f'fi = {degrees(f):.4f} [deg]; lam = {degrees(l):.4f} [deg]; h = {h:.3f} [m] | {args.uklad} | {args.model}'
-            print(wynik)
+            if f is not None and l is not None and h is not None:
+                wynik = f'fi = {degrees(f):.4f} [deg]; lam = {degrees(l):.4f} [deg]; h = {h:.3f} [m] | {args.uklad} | {args.model}'
+                print(wynik)
+            else:
+                print("Wprowadź inne współrzędne.")
         elif args.uklad == 'NEU':
             n, e, u = geo.xyz2neu(args.x, args.y, args.z, args.x_ref, args.y_ref, args.z_ref)
             wynik = f'N = {n:.3f} [m]; E = {e:.3f} [m]; U = {u:.3f} [m] | {args.uklad} | {args.model}'
