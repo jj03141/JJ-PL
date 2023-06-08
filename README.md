@@ -9,6 +9,7 @@ Program został napisany dla systemu operacyjnego Windows.
 ## Instrukcja obsługi
 Program umożliwia transformację XYZ -> BLH, BLH -> XYZ, XYZ -> PL-1992, XYZ -> PL-2000 oraz XYZ -> NEU dla wcześniej podanych elipsoid.
 Dane wejściowe i wyjściowe programu są obsługiwane w formacie float.
+Istnieją dwie możliwości wprowadzenia współrzędnych: wprowadzanie ręczne (--input cmd), czyli opcja domyślna lub wczytanie pliku z rozszerzeniem .txt (--input txt).
 Aby uzyskać współrzędne przeliczone na wybrany przez nas układ musimy otworzyć w oknie **cmd** ścieżkę do folderu z naszym plikiem (przykład ścieżki: *C:\Users\user\OneDrive\Pulpit\informatyka\projekt1*), \
 a następnie wpisać "python" oraz nazwę naszego pliku. Dalej w tej samej linijce możemy wpisywać współrzędne XYZ (wartośći współrzędnych wyrażone w metrach) lub BLH (wartości B oraz L wprowadzamy w stopniach dziesiętnych, natomiast H w metrach) dla transformacji BLH -> XYZ. 
 
@@ -29,7 +30,22 @@ W przypadku transformacji XYZ -> NEU musimy wprowadzić także współrzędne pu
 **Przykład:** \
 *python infa_projekt.py 3664940.500 1409153.590 5009571.170 -x_ref 3664941.500 -y_ref 1409152.590 -z_ref 5009570.170 --uklad NEU*
 
+Jeśli chcemy przetransformować współrzędne zawarte w pliku tekstowym, wówczas  musimy podać jego nazwę (-txt wsp_wejściowe.txt), nazwę pliku wyjściowego (-txt_out wsp_wyjściowe.txt) oraz wybrać opcję --input txt. Ważne jest aby dane w pliku były rozdzielone przecinkiem, a także aby nie zawierał on spacji a współrzędne każdego punktu zaczynały się od nowego wiersza. Separatorem rozwinięcia dziesiętnego liczby powinna być kropka.
+
+**Fragment pliku .txt gotowego do wczytania:** \
+*3664940.500,1409153.590,5009571.170* \
+*3664940.510,1409153.580,5009571.167* \
+*3664940.520,1409153.570,5009571.167* \
+*3664940.530,1409153.560,5009571.168* \
+*3664940.520,1409153.590,5009571.170*
+
+**Przykład:** \
+*python infa_projekt.py --input txt --model grs80 -txt wsp_input.txt -txt_out wsp_output.txt*
+
+Podobnie jak w przypadku współrzędnych wprowadzanych ręcznie mamy możliwość wybrania układu wyjściowego dla transformowanych współzędnych, a także typu współrzędnych wejściowych, czy modelu elipsoidy. 
+
 ## Znane błędy i nietypowe zachowania
 - Program zwraca błąd w przypadku podania niepoprawnego modelu elipsoidy lub systemu współrzędnych.
+- Program zwraca błąd dla transformacji XYZ -> BLH  w przypadku podania współrzędnych X=0 Y=0, dla których nie jest możliwe jednoznaczne określenie współrzędnych w układzie BLH. 
 - Nieobsługiwane są niektóre formaty danych wejściowych (np. tekstowe).
 - Transformacja XYZ -> PL-1992 oraz XYZ ->PL-2000 dla elipsoidy Krasowskiego zwraca błędne wyniki, nie powinna więc być używana.
