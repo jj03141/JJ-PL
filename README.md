@@ -30,7 +30,7 @@ W przypadku transformacji XYZ -> NEU musimy wprowadzić także współrzędne pu
 **Przykład:** \
 *python infa_projekt.py 3664940.500 1409153.590 5009571.170 -x_ref 3664941.500 -y_ref 1409152.590 -z_ref 5009570.170 --uklad NEU*
 
-Jeśli chcemy przetransformować współrzędne zawarte w pliku tekstowym, wówczas  musimy podać jego nazwę (-txt wsp_wejściowe.txt), nazwę pliku wyjściowego (-txt_out wsp_wyjściowe.txt) oraz wybrać opcję --input txt. Ważne jest aby dane w pliku były rozdzielone przecinkiem, a także aby nie zawierał on spacji a współrzędne każdego punktu zaczynały się od nowego wiersza. Separatorem rozwinięcia dziesiętnego liczby powinna być kropka.
+Jeśli chcemy przetransformować współrzędne zawarte w pliku tekstowym, wówczas  musimy podać jego nazwę (-txt wsp_wejściowe.txt), nazwę pliku wyjściowego (-txt_out wsp_wyjściowe.txt) oraz wybrać opcję --input txt. Ważne jest aby dane w pliku były rozdzielone przecinkiem, a także aby nie zawierał on spacji a współrzędne każdego punktu zaczynały się od nowego wiersza. Separatorem rozwinięcia dziesiętnego liczby powinna być kropka. Należy pamiętać, że plik powinien znajdować się w tym samym folderze roboczym co nasz program.
 
 **Fragment pliku .txt gotowego do wczytania:** \
 *3664940.500,1409153.590,5009571.170* \
